@@ -1,270 +1,168 @@
-﻿z@model TailSpin.SpaceGame.Web.Models.LeaderboardViewModel
-@{
-    ViewData["Title"] = "Home Page";
-}
-<section class="intro">
-    <div class="container">
-        <img class="title" src="/images/space-game-title.svg" alt="Space Game">
-        <p>An example site for learning</p>
-    </div>
-</section>
-<section class="download">
-    <div class="image-cap"></div>
-    <div class="container">
-        <a href="" class="btn btn-default btn-lg" data-toggle="modal" data-target="#pretend-modal">Download game</a>
-    </div>
-</section>
+﻿using Microsoft.Edge.SeleniumTools;
+using NUnit.Framework;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Firefox;
+using OpenQA.Selenium.Support.UI;
+using System;
+using System.Collections;
 
-<!-- Screenshots -->
-<section class="screens">
-    <div class="container">
-        <ul>
-            <li><a href="" data-toggle="modal" data-target=".pic-01"><img src="/images/space-game-placeholder.svg" alt=""></a></li>
-            <li><a href="" data-toggle="modal" data-target=".pic-01"><img src="/images/space-game-placeholder.svg" alt=""></a></li>
-            <li><a href="" data-toggle="modal" data-target=".pic-01"><img src="/images/space-game-placeholder.svg" alt=""></a></li>
-            <li><a href="" data-toggle="modal" data-target=".pic-01"><img src="/images/space-game-placeholder.svg" alt=""></a></li>
-        </ul>
-    </div>
-</section>
+namespace UITests
+{
+    [TestFixture("Chrome")]
+    [TestFixture("Firefox")]
+    [TestFixture("Edge")]
+    public class HomePageTest
+    {
+        private string browser;
+        private IWebDriver driver;
 
-<!-- Leaderboard -->
-<section class="leaderboard">
-    <div class="container">
-        <a name="leaderboard"></a>
-        <h2>Space leaders</h2>
-        <!-- Start Leaderboard table -->
-        <div class="row">
-            <div class="col-sm-9 leader-scores">
-                <div class="row high-score hidden-xs">
-                    <div class="col-sm-1">
-                        Rank
-                    </div>
-                    <div class="col-sm-4">
-                        Player
-                    </div>
-                    <div class="col-sm-2">
-                        Mode
-                    </div>
-                    <div class="col-sm-3">
-                        Galaxy
-                    </div>
-                    <div class="col-sm-2">
-                        Score
-                    </div>
-                </div>
+        public HomePageTest(string browser)
+        {
+            this.browser = browser;
+        }
 
-                @{
-                    if (Model.Scores.Count() == 0)
-                    {
-                        <div class="row" style="margin-left: 5px; margin-top: 20px;">No scores match your selection.</div>
-                    }
-
-                    int rank = ((Model.Page - 1) * Model.PageSize) + 1;
-                    foreach (var score in Model.Scores)
-                    {
-                        <div class="row high-score align-items-center">
-                            <div class="col-sm-1 score-data">
-                                @(rank++).
-                            </div>
-                            <div class="col-sm-4 score-data">
-                                <div style="text-align: left; margin-left: 100px;">
-                                    <partial name="Profile" model="new ProfileViewModel { Profile = score.Profile, Rank = (rank - 1).ToString() }" />
-                                    <a href="" data-toggle="modal" data-target="#profile-modal-@((rank - 1).ToString())">
-                                        <img class="avatar" src="@score.Profile.AvatarUrl" alt="@score.Profile.UserName">
-                                        <div class="score-data username">
-                                            @score.Profile.UserName
-                                        </div>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="col-sm-2 score-data">
-                                @score.Score.GameMode
-                            </div>
-                            <div class="col-sm-3 score-data">
-                                @score.Score.GameRegion
-                            </div>
-                            <div class="col-sm-2 score-data">
-                                @score.Score.HighScore.ToString("N0")
-                            </div>
-                        </div>
-                    }
+        [OneTimeSetUp]
+        public void Setup()
+        {
+            try
+            {
+                // Create the driver for the current browser.
+                switch(browser)
+                {
+                  case "Chrome":
+                        //driver = new ChromeDriver(
+                        //    Environment.GetEnvironmentVariable("ChromeWebDriver")
+                        //);
+                        ChromeOptions options = new ChromeOptions();
+                        options.AddArguments("--disable-extensions");
+                        driver = new ChromeDriver(options);
+                        break;
+                  case "Firefox":
+                        driver = new FirefoxDriver();
+                        //driver = new FirefoxDriver(
+                        //Environment.GetEnvironmentVariable("GeckoWebDriver")
+                        //);
+                    break;
+                  case "Edge":
+                    driver = new EdgeDriver(
+                        //Environment.GetEnvironmentVariable("EdgeWebDriver"),
+                        new EdgeOptions
+                        {
+                            UseChromium = true
+                        }
+                    );
+                    break;
+                  default:
+                    throw new ArgumentException($"'{browser}': Unknown browser");
                 }
-                <nav aria-label="...">
-                    <ul class="pagination">
-                        @if (string.IsNullOrEmpty(Model.PrevLink))
-                        {
-                            <li class="disabled"><span aria-hidden="true">&laquo;</span></li>
-                        }
-                        else
-                        {
-                            <li class=""><a href="@Model.PrevLink" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>
-                        }
-                        @{
-                            var totalPages = Model.TotalResults / Model.PageSize;
-                            if (Model.TotalResults % Model.PageSize != 0)
-                            {
-                                totalPages++;
-                            }
 
-                            for (int i = 1; i <= totalPages; i++)
-                            {
-                                <li class="@(i == Model.Page ? "active" : null)">
-                                    <a href="@($"/?page={i}&pageSize={@Model.PageSize}&mode={@Model.SelectedMode}&region={@Model.SelectedRegion}")#leaderboard">
-                                        @i
-                                        <span class="sr-only">(current)</span>
-                                    </a>
-                                </li>
-                            }
-                        }
-                        @if (string.IsNullOrEmpty(Model.NextLink))
-                        {
-                            <li class="disabled"><span aria-hidden="true">&raquo;</span></li>
-                        }
-                        else
-                        {
-                            <li class=""><a href="@Model.NextLink" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>
-                        }
-                    </ul>
-                </nav>
-            </div>
+                // Wait until the page is fully loaded on every page navigation or page reload.
+                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(20);
 
-            <div class="col-sm-3">
-                <div class="leader-nav hidden-xs">
-                    <div class="row nav-buttons">
-                        <h4>Mode</h4>
-                        <ul>
-                            @if (string.IsNullOrEmpty(Model.SelectedMode))
-                            {
-                                <li class="filter-active">All</li>
-                            }
-                            else
-                            {
-                                <li class="filter-button">
-                                    <a class="" href="/?region=@Model.SelectedRegion#leaderboard">All</a>
-                                </li>
-                            }
-                            @{
-                                foreach (var mode in Model.GameModes)
-                                {
-                                    @if (mode.Equals(Model.SelectedMode))
-                                    {
-                                        <li class="filter-active">@mode</li>
-                                    }
-                                    else
-                                    {
-                                        <li class="filter-button"><a href="/?mode=@mode&region=@Model.SelectedRegion#leaderboard">@mode</a></li>
-                                    }
-                                }
-                            }
-                        </ul>
-                    </div>
+                // Navigate to the site.
+                // The site name is stored in the SITE_URL environment variable to make 
+                // the tests more flexible. Show a change!
+                //string url = Environment.GetEnvironmentVariable("SITE_URL");
+                string url = "http://tailspin-space-game-web-test-2292.azurewebsites.net";
+                driver.Navigate().GoToUrl(url + "/");
 
-                    <div class="row nav-buttons">
-                        <h4>Galaxy</h4>
-                        <ul>
-                            @if (string.IsNullOrEmpty(Model.SelectedRegion))
-                            {
-                                <li class="filter-active">All</li>
-                            }
-                            else
-                            {
-                                <li class="filter-button"><a href="/?mode=@Model.SelectedMode#leaderboard">All</a></li>
-                            }
+                // Wait for the page to be completely loaded.
+                new WebDriverWait(driver, TimeSpan.FromSeconds(10))
+                    .Until(d => ((IJavaScriptExecutor) d)
+                        .ExecuteScript("return document.readyState")
+                        .Equals("complete"));
+            }
+            catch (DriverServiceNotFoundException)
+            {
+                Console.WriteLine("DriverServiceNotFoundException");
+            }
+            catch (WebDriverException)
+            {
+                Console.WriteLine("WebDriverException");
+                Cleanup();
+            }
+        }
+    
+        [OneTimeTearDown]
+        public void Cleanup()
+        {
+            if (driver != null)
+            {
+                driver.Quit();
+            }
+        }
 
-                            @{
-                                foreach (var region in Model.GameRegions)
-                                {
-                                    @if (region.Equals(Model.SelectedRegion))
-                                    {
-                                        <li class="filter-active">@region</li>
-                                    }
-                                    else
-                                    {
-                                        <li class="filter-button"><a href="/?mode=@Model.SelectedMode&region=@region#leaderboard">@region</a></li>
-                                    }
-                                }
-                            }
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- End Leaderboard -->
-    </div>
-</section>
+        // Download game
+        [TestCase("download-btn", "pretend-modal")]
+        // Screen image
+        [TestCase("screen-01", "screen-modal")]
+        // // Top player on the leaderboard
+        [TestCase("profile-1", "profile-modal-1")]
+        public void ClickLinkById_ShouldDisplayModalById(string linkId, string modalId)
+        {
+            // Skip the test if the driver could not be loaded.
+            // This happens when the underlying browser is not installed.
+            if (driver == null)
+            {
+                Assert.Ignore();
+                return;
+            }
 
-<!-- About section -->
-<section class="about">
-    <h2>More about Space Game</h2>
-    <p>Space Game is an example website for learning purposes. Check out <a href="https://aka.ms/mslearndevops/">Microsoft Learn</a> to find out more.</p>
-</section>
-<section class="social">
-    <div class="container">
-        <div class="share">
-            <ul>
-                <li><a href="" data-toggle="modal" data-target=".social-media"><img src="/images/space-game-placeholder.svg" alt="" /></a></li>
-                <li><a href="" data-toggle="modal" data-target=".social-media"><img src="/images/space-game-placeholder.svg" alt="" /></a></li>
-                <li><a href="" data-toggle="modal" data-target=".social-media"><img src="/images/space-game-placeholder.svg" alt="" /></a></li>
-            </ul>
-        </div>
-    </div>
-    <p>&copy; @DateTime.Now.Year - TailSpin Toys</p>
-</section>
+            // Locate the link by its ID and then click the link.
+            ClickElement(FindElement(By.Id(linkId)));
 
+            // Locate the resulting modal.
+            IWebElement modal = FindElement(By.Id(modalId));
 
-<!-- Modals -->
-<div class="modal fade" id="test-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header no-border">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                modal
-            </div>
-        </div>
-    </div>
-</div>
+            // Record whether the modal was successfully displayed.
+            bool modalWasDisplayed = (modal != null && modal.Displayed);
 
-<!-- Pic modals -->
-<div class="modal fade pic-01" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header no-border">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body text-center">
-                <img src="/images/space-game-placeholder.svg" width="100%" alt="">
-                <p>Gamescreen example</p>
-            </div>
-        </div>
-    </div>
-</div>
+            // Close the modal if it was displayed.
+            if (modalWasDisplayed)
+            {
+                // Click the close button that's part of the modal.
+                ClickElement(FindElement(By.ClassName("close"), modal));
+                
+                // Wait for the modal to close and for the main page to again be clickable.
+                FindElement(By.TagName("body"));
+            }
 
-<!-- Social -->
-<div class="modal fade social-media" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header no-border">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body text-center">
-                Social media example
-            </div>
-        </div>
-    </div>
-</div>
+            // Assert that the modal was displayed successfully.
+            // If it wasn't, this test will be recorded as failed.
+            Assert.That(modalWasDisplayed, Is.True);
+        }
 
-<!-- Dead end modal -->
-<div class="modal fade" id="pretend-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header no-border">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body text-center">
-                This link is for example purposes and goes nowhere. 😐
-            </div>
-        </div>
-    </div>
-</div>
+        private IWebElement FindElement(By locator, IWebElement parent = null, int timeoutSeconds = 10)
+        {
+            // WebDriverWait enables us to wait for the specified condition to be true
+            // within a given time period.
+            return new WebDriverWait(driver, TimeSpan.FromSeconds(timeoutSeconds))
+                .Until(c => {
+                    IWebElement element = null;
+                    // If a parent was provided, find its child element.
+                    if (parent != null)
+                    {
+                        element = parent.FindElement(locator);
+                    }
+                    // Otherwise, locate the element from the root of the DOM.
+                    else
+                    {
+                        element = driver.FindElement(locator);
+                    }
+                    // Return true once the element is displayed and able to receive user input.
+                    return (element != null && element.Displayed && element.Enabled) ? element : null;
+                });
+        }
+
+        private void ClickElement(IWebElement element)
+        {
+            // We expect the driver to implement IJavaScriptExecutor.
+            // IJavaScriptExecutor enables us to execute JavaScript code during the tests.
+            IJavaScriptExecutor js = driver as IJavaScriptExecutor;
+
+            // Through JavaScript, run the click() method on the underlying HTML object.
+            js.ExecuteScript("arguments[0].click();", element);
+        }
+    }
+}
