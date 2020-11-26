@@ -63,8 +63,8 @@ namespace UITests
                 // Navigate to the site.
                 // The site name is stored in the SITE_URL environment variable to make 
                 // the tests more flexible. Show a change!
-                //string url = Environment.GetEnvironmentVariable("SITE_URL");
-                string url = "http://tailspin-space-game-web-test-2292.azurewebsites.net";
+                string url = Environment.GetEnvironmentVariable("SITE_URL");
+                //string url = "http://tailspin-space-game-web-test-2292.azurewebsites.net";
                 driver.Navigate().GoToUrl(url + "/");
 
                 // Wait for the page to be completely loaded.
