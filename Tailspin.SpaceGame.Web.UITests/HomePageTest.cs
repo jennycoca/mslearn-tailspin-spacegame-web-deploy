@@ -31,18 +31,22 @@ namespace UITests
                 switch(browser)
                 {
                   case "Chrome":
-                    driver = new ChromeDriver(
-                        Environment.GetEnvironmentVariable("ChromeWebDriver")
-                    );
-                    break;
+                        //driver = new ChromeDriver(
+                        //    Environment.GetEnvironmentVariable("ChromeWebDriver")
+                        //);
+                        ChromeOptions options = new ChromeOptions();
+                        options.AddArguments("--disable-extensions");
+                        driver = new ChromeDriver(options);
+                        break;
                   case "Firefox":
-                    driver = new FirefoxDriver(
-                        Environment.GetEnvironmentVariable("GeckoWebDriver")
-                    );
+                        driver = new FirefoxDriver();
+                        //driver = new FirefoxDriver(
+                        //Environment.GetEnvironmentVariable("GeckoWebDriver")
+                        //);
                     break;
                   case "Edge":
                     driver = new EdgeDriver(
-                        Environment.GetEnvironmentVariable("EdgeWebDriver"),
+                        //Environment.GetEnvironmentVariable("EdgeWebDriver"),
                         new EdgeOptions
                         {
                             UseChromium = true
@@ -60,6 +64,7 @@ namespace UITests
                 // The site name is stored in the SITE_URL environment variable to make 
                 // the tests more flexible.
                 string url = Environment.GetEnvironmentVariable("SITE_URL");
+                //string url = "http://tailspin-spacegame-web.azurewebsites.net";
                 driver.Navigate().GoToUrl(url + "/");
 
                 // Wait for the page to be completely loaded.
